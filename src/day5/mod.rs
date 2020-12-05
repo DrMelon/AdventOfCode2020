@@ -18,6 +18,7 @@ fn populate_menu(s: &mut Cursive) {
     s.call_on_name("day_menu", |view: &mut SelectView<i32>| {
         view.add_item("1st Star ⭐", 0);
         view.add_item("2nd Star 🌟", 1);
+        view.add_item("Alternate Method 🌟🌟🌟", 2);
         view.add_item("Back", 999);
     });
 }
@@ -29,6 +30,9 @@ fn menu_selection(s: &mut Cursive, selection: &i32) {
         }
         1 => {
             second_star(s);
+        }
+        2 => {
+            alternate_method(s);
         }
         999 => {
             s.pop_layer();
@@ -97,6 +101,34 @@ pub fn second_star(s: &mut Cursive) {
     );
 }
 
+pub fn alternate_method(s: &mut Cursive) {
+    let async_view = AsyncView::new_with_bg_creator(
+        s,
+        move || {
+            let bufreader = BufReader::new(File::open("inputs/day5_1.txt").unwrap());
+            let lines : Vec<String> = bufreader.lines().map(|line| line.unwrap()).collect();
+
+            let all_seat_ids : Vec<i32> = lines.iter().map(|line| process_boarding_token_alternate(line)).collect();
+            let min_seat_id = *all_seat_ids.iter().min().unwrap();
+            let max_seat_id = *all_seat_ids.iter().max().unwrap();
+            let missing_id = (min_seat_id .. max_seat_id).find(|seat_id| !all_seat_ids.contains(&seat_id)).unwrap();
+
+            Ok(format!("Max seat id: {} - my seat is: {} ", max_seat_id, missing_id))
+        },
+        TextView::new,
+    )
+    .with_height(15)
+    .with_width(30);
+        
+    s.add_layer(
+        Dialog::around(async_view)
+            .title("Alternate Method ⭐⭐⭐")
+            .button("Huh!", |s| {
+                s.pop_layer();
+            }),
+    );
+}
+
 pub fn process_boarding_token(token: &String) -> (i32, i32) {
     // Token Format: 
     // A 10 character string.
@@ -130,6 +162,24 @@ pub fn process_boarding_token(token: &String) -> (i32, i32) {
     (maxrow, maxcol)
 }
 
+pub fn process_boarding_token_alternate(token: &String) -> i32 {
+    let mut seatid = 0;
+
+    for idx in 0 .. 10 {
+        match token.chars().rev().nth(idx).unwrap() {
+            'B' => {
+                seatid |= 1 << (idx);
+            }
+            'R' => {
+                seatid |= 1 << (idx);
+            }
+            _ => {}
+        }
+    }
+
+    seatid
+}
+
 pub fn seat_id_from_seat_location(seat: (i32, i32)) -> i32 {
     (seat.0 * 8) + seat.1
 }
@@ -151,6 +201,11 @@ mod day5tests {
         assert_eq!(process_boarding_token(&test_tokens[1]), (70, 7));
         assert_eq!(process_boarding_token(&test_tokens[2]), (14, 7));
         assert_eq!(process_boarding_token(&test_tokens[3]), (102, 4));
+
+        assert_eq!(process_boarding_token_alternate(&test_tokens[0]), 357);
+        assert_eq!(process_boarding_token_alternate(&test_tokens[1]), 567);
+        assert_eq!(process_boarding_token_alternate(&test_tokens[2]), 119);
+        assert_eq!(process_boarding_token_alternate(&test_tokens[3]), 820);
     }
 
     #[test]
