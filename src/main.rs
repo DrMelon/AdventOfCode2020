@@ -1,9 +1,7 @@
-use cursive::{Cursive, CursiveExt};
+use cursive::{Cursive};
 use cursive::views::{Dialog, TextView, SelectView};
 use cursive::traits::*;
-use cursive_async_view::{AsyncView, AsyncState};
-use std::thread;
-use std::time::Duration;
+use cursive_async_view::{AsyncView};
 
 pub mod day1;
 

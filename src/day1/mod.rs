@@ -2,7 +2,7 @@
 // https://adventofcode.com/2020/day/1
 use super::*;
 use std::fs::File;
-use std::io::{BufRead, BufReader, Error, ErrorKind, Read};
+use std::io::{BufRead, BufReader};
 
 pub fn display_day_menu(s: &mut Cursive) {
     let menu = SelectView::<i32>::new()
