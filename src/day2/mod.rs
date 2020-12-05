@@ -52,7 +52,7 @@ pub fn first_star(s: &mut Cursive) {
                 })
                 .collect();
 
-            let valid_passwords_count = db_entries.iter().filter(|entry|  validate_entry(&parse_entry(entry))).count() as i32;
+            let valid_passwords_count = db_entries.iter().filter(|entry|  validate_entry_star1(&parse_entry(entry))).count() as i32;
 
             Ok(format!("Total passwords:{}\nValid passwords: {}", db_entries.len() as i32, valid_passwords_count))
         },
@@ -75,8 +75,17 @@ pub fn second_star(s: &mut Cursive) {
     let async_view = AsyncView::new_with_bg_creator(
         s,
         move || {
+            let bufreader = BufReader::new(File::open("inputs/day2_1.txt").unwrap());
+            let db_entries: Vec<String> = bufreader
+                .lines()
+                .map(|line| {
+                    return line.unwrap();
+                })
+                .collect();
 
-            Ok("Wow!")
+            let valid_passwords_count = db_entries.iter().filter(|entry|  validate_entry_star2(&parse_entry(entry))).count() as i32;
+
+            Ok(format!("Total passwords:{}\nValid passwords: {}", db_entries.len() as i32, valid_passwords_count))
         },
         TextView::new,
     )
@@ -112,10 +121,20 @@ pub fn parse_entry(entry: &String) -> (i32, i32, char, String) {
     (range_split[0], range_split[1], char_valid, password.to_string())
 }
 
-pub fn validate_entry(entry_parsed: &(i32, i32, char, String)) -> bool {
+pub fn validate_entry_star1(entry_parsed: &(i32, i32, char, String)) -> bool {
     let target_char_count = entry_parsed.3.chars().filter(|chr| {return *chr == entry_parsed.2}).count() as i32;
 
-    return target_char_count >= entry_parsed.0 && target_char_count <= entry_parsed.1;
+    target_char_count >= entry_parsed.0 && target_char_count <= entry_parsed.1
+}
+
+pub fn validate_entry_star2(entry_parsed: &(i32, i32, char, String)) -> bool {
+    // Check char at position matches either, but not both
+    // XOR!
+
+    let first_matches = entry_parsed.3.chars().nth((entry_parsed.0 - 1) as usize) == Some(entry_parsed.2);
+    let second_matches = entry_parsed.3.chars().nth((entry_parsed.1 - 1) as usize) == Some(entry_parsed.2);
+
+    first_matches ^ second_matches
 }
 
 #[cfg(test)]
@@ -137,14 +156,26 @@ mod day2tests {
     }
 
     #[test]
-    fn entry_validation_works() {
+    fn entry_validation_works_star1() {
         let test_entries_parsed = vec![
             (1, 3, 'a', "abcde".to_string()),
             (1, 3, 'b', "cdefg".to_string()),
             (2, 9, 'c', "ccccccccc".to_string())];
 
-        assert_eq!(day2::validate_entry(&test_entries_parsed[0]), true);
-        assert_eq!(day2::validate_entry(&test_entries_parsed[1]), false);
-        assert_eq!(day2::validate_entry(&test_entries_parsed[2]), true);
+        assert_eq!(day2::validate_entry_star1(&test_entries_parsed[0]), true);
+        assert_eq!(day2::validate_entry_star1(&test_entries_parsed[1]), false);
+        assert_eq!(day2::validate_entry_star1(&test_entries_parsed[2]), true);
     }
+
+    #[test]
+    fn entry_validation_works_star2() {
+        let test_entries_parsed = vec![
+            (1, 3, 'a', "abcde".to_string()),
+            (1, 3, 'b', "cdefg".to_string()),
+            (2, 9, 'c', "ccccccccc".to_string())];
+
+        assert_eq!(day2::validate_entry_star2(&test_entries_parsed[0]), true);
+        assert_eq!(day2::validate_entry_star2(&test_entries_parsed[1]), false);
+        assert_eq!(day2::validate_entry_star2(&test_entries_parsed[2]), false);
+    }    
 }
