@@ -1,5 +1,5 @@
 [package]
-name = "AdventOfCode2020"
+name = "adventofcode2020"
 version = "0.1.0"
 authors = ["Jordan Brown <jordan.brown@tag-games.com>"]
 edition = "2018"

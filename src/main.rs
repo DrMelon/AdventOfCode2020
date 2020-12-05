@@ -1,11 +1,11 @@
-use cursive::{Cursive};
-use cursive::views::{Dialog, TextView, SelectView};
 use cursive::traits::*;
-use cursive_async_view::{AsyncView};
+use cursive::views::{Dialog, SelectView, TextView};
+use cursive::Cursive;
+use cursive_async_view::AsyncView;
 
 pub mod day1;
 
-fn main()  {
+fn main() {
     // Creates the cursive root - required for every application.
     let mut siv = cursive::default();
 
@@ -16,32 +16,34 @@ fn main()  {
     let menu = SelectView::<i32>::new()
         .on_submit(menu_selection)
         .with_name("main_menu")
-        .fixed_size((50,20));
-
-    
-    
-  
+        .fixed_size((50, 20));
 
     siv.add_layer(Dialog::around(menu).title("Main Menu"));
     populate_menu(&mut siv);
 
     // Show intro dialogue.
-    siv.add_layer(Dialog::around(TextView::new("🎄 Welcome to my Advent of Code 2020 solutions! ~@drmelon 🍉"))
-                         .title("🎄 AoC 2020 🎄")
-                         .button("Thanks!", |s| {s.pop_layer();}));
+    siv.add_layer(
+        Dialog::around(TextView::new(
+            "🎄 Welcome to my Advent of Code 2020 solutions! ~@drmelon 🍉",
+        ))
+        .title("🎄 AoC 2020 🎄")
+        .button("Thanks!", |s| {
+            s.pop_layer();
+        }),
+    );
 
     // Starts the event loop.
-    siv.run();    
+    siv.run();
 }
 
-fn menu_selection(s: &mut Cursive, selection: &i32) {    
+fn menu_selection(s: &mut Cursive, selection: &i32) {
     match selection {
         0 => {
             day1::display_day_menu(s);
         }
         999 => {
             s.quit();
-        },
+        }
         _ => {}
     }
 }
