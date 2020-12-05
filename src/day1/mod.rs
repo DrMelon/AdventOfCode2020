@@ -42,7 +42,7 @@ fn menu_selection(s: &mut Cursive, selection: &i32) {
 pub fn first_star(s: &mut Cursive) {
     // Create async dialog for this.
     let async_view = AsyncView::new_with_bg_creator(s, move || {
-         // Load input file and parse it into a vec of ints
+        // Load input file and parse it into a vec of ints
         let bufreader = BufReader::new(File::open("inputs/day1_1.txt").unwrap());
         let numbers: Vec<i32> = bufreader.lines().map(|line| {return line.unwrap().parse().unwrap();}).collect();
 
@@ -61,17 +61,37 @@ pub fn first_star(s: &mut Cursive) {
 
         Ok(format!("Done! {} * {} = {}", results.0, results.1, results.0 * results.1))
     }, TextView::new).with_height(15).with_width(30);
-
    
     s.add_layer(Dialog::around(async_view).title("1st Star ⭐").button("Neat!", |s| {s.pop_layer();}));
-    
-
 }
 
 pub fn second_star(s: &mut Cursive) {
     // Create async dialog for this.
+    let async_view = AsyncView::new_with_bg_creator(s, move || {
+       // Load input file and parse it into a vec of ints
+       let bufreader = BufReader::new(File::open("inputs/day1_2.txt").unwrap());
+       let numbers: Vec<i32> = bufreader.lines().map(|line| {return line.unwrap().parse().unwrap();}).collect();
 
+       // Process triplets of numbers.
+       let mut results = (0, 0, 0);
+       'outerloop: for idx in 0 .. numbers.len() {
+           let a = &numbers[idx];
+           let bslice = &numbers[idx..];
+           for bidx in 0 .. bslice.len() {
+               let b = &bslice[bidx];
+               for c in &bslice[bidx..] {
+                   if a + b + c == 2020 
+                       {
+                           results = (*a, *b, *c);
+                           break 'outerloop;
+                       }
+               }
+               
+           }
+       }
 
-    // Display dialog.
-
+       Ok(format!("Done! {} * {} * {} = {}", results.0, results.1, results.2, results.0 * results.1 * results.2))
+   }, TextView::new).with_height(15).with_width(30);
+  
+   s.add_layer(Dialog::around(async_view).title("2nd Star ⭐").button("Ah, cool!", |s| {s.pop_layer();}));
 }
