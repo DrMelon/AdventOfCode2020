@@ -52,8 +52,7 @@ pub fn first_star(s: &mut Cursive) {
                 })
                 .collect();
 
-            let tree_count = count_trees_in_map(map_ylines, 3, 1, '#');
-
+            let tree_count = count_trees_in_map(&map_ylines, 3, 1, '#');
 
             Ok(format!("Trees thumped: {}", tree_count))
         },
@@ -84,8 +83,17 @@ pub fn second_star(s: &mut Cursive) {
                 })
                 .collect();
 
+            let slopes = vec![
+                (1, 1),
+                (3, 1),
+                (5, 1),
+                (7, 1),
+                (1, 2),
+            ];
 
-            Ok(format!("Yup!"))
+            let tree_count = map_all_slopes_multiplied_together(&map_ylines, &slopes, '#');
+
+            Ok(format!("🎄 x {}", tree_count))
         },
         TextView::new,
     )
@@ -101,7 +109,7 @@ pub fn second_star(s: &mut Cursive) {
     );
 }
 
-pub fn count_trees_in_map(map_ylines: Vec<String>, deltax: i32, deltay: i32, tree: char) -> i32 {
+pub fn count_trees_in_map(map_ylines: &Vec<String>, deltax: i32, deltay: i32, tree: char) -> i32 {
     let mut x = 0;
     let mut y = 0;
     let mut tree_count: i32 = 0;
@@ -114,7 +122,6 @@ pub fn count_trees_in_map(map_ylines: Vec<String>, deltax: i32, deltay: i32, tre
             tree_count += 1;
         }
     }
-
     tree_count
 }
 
@@ -125,7 +132,9 @@ pub fn is_tree_at_location(yline: &String, x: i32, tree: char) -> bool {
     yline.chars().nth(wrapped_x as usize) == Some(tree)
 }
 
-
+pub fn map_all_slopes_multiplied_together(map_ylines: &Vec<String>, slopes: &Vec<(i32, i32)>, tree: char) -> i64 {
+    slopes.iter().fold(1, |trees, slope| trees * count_trees_in_map(map_ylines, slope.0, slope.1, tree) as i64)
+}
 
 #[cfg(test)]
 mod day3tests {
@@ -167,9 +176,32 @@ mod day3tests {
             "#...##....#".to_string(),
             ".#..#...#.#".to_string()];
         
-        assert_eq!(day3::count_trees_in_map(test_entries, 3, 1, '#'), 7);
-        
+        assert_eq!(day3::count_trees_in_map(&test_entries, 3, 1, '#'), 7);
     }
 
-    
+    #[test]
+    fn map_tree_count_all_slopes_works() {
+        let test_entries = vec![
+            "..##.......".to_string(),
+            "#...#...#..".to_string(),
+            ".#....#..#.".to_string(),
+            "..#.#...#.#".to_string(),
+            ".#...##..#.".to_string(),
+            "..#.##.....".to_string(),
+            ".#.#.#....#".to_string(),
+            ".#........#".to_string(),
+            "#.##...#...".to_string(),
+            "#...##....#".to_string(),
+            ".#..#...#.#".to_string()];
+        
+        let test_slopes = vec![
+            (1, 1),
+            (3, 1),
+            (5, 1),
+            (7, 1),
+            (1, 2),
+        ];
+        
+        assert_eq!(day3::map_all_slopes_multiplied_together(&test_entries, &test_slopes, '#'), 336);
+    }
 }
