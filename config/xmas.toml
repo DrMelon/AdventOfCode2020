@@ -1,0 +1,32 @@
+# Every field in a theme file is optional.
+
+shadow = true
+borders = "outset" # Alternatives are "none" and "simple"
+
+# Base colors are red, green, blue,
+# cyan, magenta, yellow, white and black.
+[colors]
+	# There are 3 ways to select a color:
+	# - The 16 base colors are selected by name:
+	#       "blue", "light red", "magenta", ...
+	# - Low-resolution colors use 3 characters, each <= 5:
+	#       "541", "003", ...
+	# - Full-resolution colors start with '#' and can be 3 or 6 hex digits:
+	#       "#1A6", "#123456", ...
+
+	background = ["#018667", "142", "light green"]
+
+	shadow     = ["#003F2E", "031", "green"]
+	view       = ["#ECDEB9", "554", "white"]
+
+	primary   = ["#BA9E60", "332", "yellow"]
+	secondary = ["#FFCA58", "331", "light yellow"]
+	tertiary  = ["#AD242C", "511", "red"]
+
+	title_primary   = ["#D5AD56", "332", "yellow"]
+	title_secondary = ["#FFCA58", "331", "light yellow"]
+
+	# Lower precision values can use only 3 digits.
+	highlight          = ["#BE242C", "511", "light red"]
+	highlight_inactive = ["#AD242C", "410", "red"]
+	highlight_text     = ["#ECDEB9", "554", "white"]

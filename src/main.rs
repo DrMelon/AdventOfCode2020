@@ -11,6 +11,9 @@ fn main()  {
     // Creates the cursive root - required for every application.
     let mut siv = cursive::default();
 
+    // Load theme
+    siv.load_theme_file("config/xmas.toml").unwrap();
+
     // Show AoC list
     let menu = SelectView::<i32>::new()
         .on_submit(menu_selection)
