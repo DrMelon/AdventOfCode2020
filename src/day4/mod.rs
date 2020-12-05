@@ -3,6 +3,7 @@
 use super::*;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
+use regex::Regex;
 
 pub fn display_day_menu(s: &mut Cursive) {
     let menu = SelectView::<i32>::new()
@@ -49,7 +50,7 @@ pub fn first_star(s: &mut Cursive) {
 
             let processed_lines = preprocess_strip_blank_lines(&unprocessed_lines);
             
-            let valid_passport_count = processed_lines.iter().filter(|line| convert_processed_line(line).is_some()).count();
+            let valid_passport_count = processed_lines.iter().filter(|line| convert_processed_line(line, false).is_some()).count();
             
             Ok(format!("Passports scanned: {}\nPassports valid: {}", processed_lines.len(), valid_passport_count))
         },
@@ -73,8 +74,13 @@ pub fn second_star(s: &mut Cursive) {
         s,
         move || {
             let bufreader = BufReader::new(File::open("inputs/day4_1.txt").unwrap());
+            let unprocessed_lines: Vec<String> = bufreader.lines().map(|line| line.unwrap()).collect();
+
+            let processed_lines = preprocess_strip_blank_lines(&unprocessed_lines);
             
-            Ok(format!("Yup!"))
+            let valid_passport_count = processed_lines.iter().filter(|line| convert_processed_line(line, true).is_some()).count();
+            
+            Ok(format!("Passports scanned: {}\nPassports valid: {}", processed_lines.len(), valid_passport_count))
         },
         TextView::new,
     )
@@ -98,7 +104,8 @@ pub struct Passport {
     hcl: Option<String>,
     ecl: Option<String>,
     pid: Option<String>,
-    cid: Option<String>
+    cid: Option<String>,
+    star2_format: bool
 }
 
 impl Passport {
@@ -111,11 +118,19 @@ impl Passport {
             hcl: None,
             ecl: None,
             pid: None,
-            cid: None
+            cid: None,
+            star2_format: false
             }
     }
 
     fn is_valid(&self) -> bool {
+        match self.star2_format {
+            true => self.is_valid_star2(),
+            false => self.is_valid_star1()
+        }
+    }
+
+    fn is_valid_star1(&self) -> bool {
         self.byr.is_some() &&
         self.iyr.is_some() &&
         self.eyr.is_some() &&
@@ -123,6 +138,91 @@ impl Passport {
         self.hcl.is_some() &&
         self.ecl.is_some() &&
         self.pid.is_some()
+    }
+
+    fn is_valid_star2(&self) -> bool {
+        if !self.is_valid_star1() {
+            return false;
+        }
+
+        let mut valid = true;      
+        
+        // Birth year is a 4 digit number between 1920 and 2002.
+        valid &= self.byr.as_ref().unwrap().len() == 4;
+        if self.byr.as_ref().unwrap().parse::<i32>().is_ok() {
+            let byr = self.byr.as_ref().unwrap().parse::<i32>().unwrap();
+            valid &= byr >= 1920 && byr <= 2002;
+        }
+        else {
+            valid = false;
+        }
+
+
+        // Issue year is a 4 digit number between 2010 and 2020.
+        valid &= self.iyr.as_ref().unwrap().len() == 4;
+        if self.iyr.as_ref().unwrap().parse::<i32>().is_ok() {
+            let iyr = self.iyr.as_ref().unwrap().parse::<i32>().unwrap();
+            valid &= iyr >= 2010 && iyr <= 2020;
+        }
+        else {
+            valid = false;
+        }
+
+        // Expiration year is a 4 digit number between 2020 and 2030.
+        valid &= self.eyr.as_ref().unwrap().len() == 4;
+        if self.eyr.as_ref().unwrap().parse::<i32>().is_ok() {
+            let eyr = self.eyr.as_ref().unwrap().parse::<i32>().unwrap();
+            valid &= eyr >= 2020 && eyr <= 2030;
+        }
+        else {
+            valid = false;
+        }
+
+        // Height is a number followed by "cm" or "in".
+        let height_pattern = Regex::new(r"([0-9]+)(cm|in)").unwrap();
+        let height_caps = height_pattern.captures(self.hgt.as_ref().unwrap());
+        if height_caps.is_some() {
+            let height_num = height_caps.as_ref().unwrap().get(1);
+            let height_unit = height_caps.as_ref().unwrap().get(2);
+            
+            valid &= height_num.is_some() && height_unit.is_some();
+            if valid {
+                valid &= height_num.as_ref().unwrap().as_str().parse::<i32>().is_ok();
+                if valid {
+                    let height_numeric = height_num.as_ref().unwrap().as_str().parse::<i32>().unwrap();
+
+                    match height_unit.unwrap().as_str() {
+                        "cm" => {
+                            valid &= height_numeric >= 150 && height_numeric <= 193;
+                        },
+                        "in" => {
+                            valid &= height_numeric >= 59 && height_numeric <= 76;
+                        },
+                        _ => { valid = false; }
+                    }
+                }
+            }
+        }
+        else {
+            valid = false;
+        }
+
+        // Hair color is a # followed by six characters 0-9 or a-f
+        let hair_pattern = Regex::new(r"#([0-9 a-f]{6})").unwrap();
+        valid &= self.hcl.as_ref().unwrap().len() == 7;
+        valid &= hair_pattern.is_match(self.hcl.as_ref().unwrap());
+
+        // Eye color is exactly one of: amb blu brn gry grn hzl oth
+        let eye_pattern = Regex::new(r"(amb|blu|brn|gry|grn|hzl|oth)").unwrap();
+        valid &= eye_pattern.is_match(self.ecl.as_ref().unwrap());
+        valid &= eye_pattern.find_iter(self.ecl.as_ref().unwrap()).count() == 1;
+
+        // Passport id is a 9-digit number.
+        let pid_pattern = Regex::new(r"[0-9]{9}").unwrap();
+        valid &= self.pid.as_ref().unwrap().len() == 9;
+        valid &= pid_pattern.is_match(self.pid.as_ref().unwrap());
+
+        valid
     }
 }
 
@@ -154,9 +254,10 @@ pub fn preprocess_strip_blank_lines(lines: &Vec<String>) -> Vec<String> {
     processed_lines
 }
 
-pub fn convert_processed_line(line: &String) -> Option<Passport> {
+pub fn convert_processed_line(line: &String, star2_format: bool) -> Option<Passport> {
 
     let mut passport = Passport::new();
+    passport.star2_format = star2_format;
     let key_pairs: Vec<&str> = line.split(' ').collect();
     key_pairs.iter().for_each(|kvp| {
         let mut split_iter = kvp.split(':');
@@ -211,7 +312,7 @@ mod day4tests {
     }
 
     #[test]
-    fn passport_validation_works() {
+    fn passport_validation_works_star1() {
         let invalid_passport = Passport::new();
         let valid_passport = Passport { 
             byr: Some("a".to_string()),
@@ -222,6 +323,7 @@ mod day4tests {
             ecl: Some("a".to_string()),
             pid: Some("a".to_string()),
             cid: Some("a".to_string()),
+            star2_format: false
         };
         let valid_north_pole_id = Passport {
             byr: Some("a".to_string()),
@@ -231,20 +333,33 @@ mod day4tests {
             hcl: Some("a".to_string()),
             ecl: Some("🎄".to_string()),
             pid: Some("a".to_string()),
-            cid: None
+            cid: None,
+            star2_format: false
         };
+
 
         assert_eq!(invalid_passport.is_valid(), false);
         assert_eq!(valid_passport.is_valid(), true);
         assert_eq!(valid_north_pole_id.is_valid(), true);
+    }
 
+    #[test]
+    fn passport_validation_works_star2() {
+        let invalid_passports = vec![
+            "eyr:1972 cid:100 hcl:#18171d ecl:amb hgt:170 pid:186cm iyr:2018 byr:1926".to_string(),
+            "iyr:2019 hcl:#602927 eyr:1967 hgt:170cm ecl:grn pid:012533040 byr:1946".to_string(),
+            "hcl:dab227 iyr:2012 ecl:brn hgt:182cm pid:021572410 eyr:2020 byr:1992 cid:277".to_string(),
+            "hgt:59cm ecl:zzz eyr:2038 hcl:74454a iyr:2023 pid:3556412378 byr:2007".to_string()
+        ];
+
+        assert_eq!(invalid_passports.iter().filter(|pass| day4::convert_processed_line(pass, true).is_some()).count(), 0);
     }
 
     #[test]
     fn line_conversion_works() {
         let test_line = "ecl:gry pid:860033327 eyr:2020 hcl:#fffffd byr:1937 iyr:2017 cid:147 hgt:183cm".to_string();
 
-        let passport = day4::convert_processed_line(&test_line);
+        let passport = day4::convert_processed_line(&test_line, false);
         assert_eq!(passport.is_some(), true);
     }
 }
