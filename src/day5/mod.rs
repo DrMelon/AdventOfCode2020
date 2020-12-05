@@ -71,9 +71,17 @@ pub fn second_star(s: &mut Cursive) {
         s,
         move || {
             let bufreader = BufReader::new(File::open("inputs/day5_1.txt").unwrap());
+            let lines : Vec<String> = bufreader.lines().map(|line| line.unwrap()).collect();
+
+            let all_seat_ids : Vec<i32> = lines.iter().map(|line| seat_id_from_seat_location(process_boarding_token(line))).collect();
+
+            let min_seat_id = *all_seat_ids.iter().min().unwrap();
+            let max_seat_id = *all_seat_ids.iter().max().unwrap();
+
+
+            let missing_id = (min_seat_id .. max_seat_id).find(|seat_id| !all_seat_ids.contains(&seat_id)).unwrap();
             
-            
-            Ok(format!("Yump!"))
+            Ok(format!("My seat id is {}! ", missing_id))
         },
         TextView::new,
     )
