@@ -6,6 +6,7 @@ use cursive_async_view::AsyncView;
 pub mod day1;
 pub mod day2;
 pub mod day3;
+pub mod day4;
 
 fn main() {
     // Creates the cursive root - required for every application.
@@ -49,6 +50,9 @@ fn menu_selection(s: &mut Cursive, selection: &i32) {
         2 => {
             day3::display_day_menu(s);
         }
+        3 => {
+            day4::display_day_menu(s);
+        }
         999 => {
             s.quit();
         }
@@ -61,6 +65,7 @@ fn populate_menu(s: &mut Cursive) {
         view.add_item("Day 1) Report Repair 📄", 0);
         view.add_item("Day 2) Password Philosophy 🤫", 1);
         view.add_item("Day 3) Toboggan Trajectory 🛷", 2);
+        view.add_item("Day 4) Passport Processing 📕", 3);
         view.add_item("Quit", 999);
     });
 }

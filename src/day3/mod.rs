@@ -1,5 +1,5 @@
-// Day 2: Password Philosophy
-// https://adventofcode.com/2020/day/2
+// Day 3: Toboggan Trajectory
+// https://adventofcode.com/2020/day/3
 use super::*;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
@@ -37,8 +37,6 @@ fn menu_selection(s: &mut Cursive, selection: &i32) {
     }
 }
 
-// Iterate pairs of numbers to find a pair that sums to 2020,
-// and then multiply the pair to find the answer for the first star.
 pub fn first_star(s: &mut Cursive) {
     // Create async dialog for this.
     let async_view = AsyncView::new_with_bg_creator(
