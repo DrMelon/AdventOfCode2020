@@ -48,8 +48,8 @@ pub fn first_star(s: &mut Cursive) {
             let bufreader = BufReader::new(File::open("inputs/day6_1.txt").unwrap());
             let lines : Vec<String> = bufreader.lines().map(|line| line.unwrap()).collect();
 
-            let groups = collect_groups_as_dicts_where_any_yes(&lines);
-            let total_yes_questions = calculate_total_questions_answered_yes(&groups);
+            let groups = collect_groups_as_dicts(&lines);
+            let total_yes_questions = calculate_total_questions_answered_any_yes(&groups);
 
             
             Ok(format!("Total number of groups: {}\nTotal questions answered yes: {}", groups.len(), total_yes_questions))
@@ -76,8 +76,11 @@ pub fn second_star(s: &mut Cursive) {
             let bufreader = BufReader::new(File::open("inputs/day6_1.txt").unwrap());
             let lines : Vec<String> = bufreader.lines().map(|line| line.unwrap()).collect();
 
+            let groups = collect_groups_as_dicts(&lines);
+            let total_yes_questions = calculate_total_questions_answered_every_yes(&groups);
+
             
-            Ok(format!("Yop!"))
+            Ok(format!("Total number of groups: {}\nTotal questions where everyone answered yes: {}", groups.len(), total_yes_questions))
         },
         TextView::new,
     )
@@ -93,30 +96,40 @@ pub fn second_star(s: &mut Cursive) {
     );
 }
 
-pub fn collect_groups_as_dicts_where_any_yes(lines: &Vec<String>) -> Vec<HashMap<char, bool>> {
+pub fn collect_groups_as_dicts(lines: &Vec<String>) -> Vec<(i32, HashMap<char, i32>)> {
     let mut hashmap_vec = Vec::new();
-    let mut current_hashmap: HashMap<char, bool> = HashMap::new();
+    let mut current_hashmap: HashMap<char, i32> = HashMap::new();
+    let mut current_group_count: i32 = 0;
 
     lines.iter().for_each(|line| {
         if line.trim().is_empty() {
             // Close current group and move on.
-            hashmap_vec.push(current_hashmap.clone());
+            hashmap_vec.push((current_group_count, current_hashmap.clone()));
+            current_group_count = 0;
             current_hashmap.clear();
         }
         else {
+            current_group_count += 1;
             line.trim().chars().for_each(|chr| {
-                current_hashmap.insert(chr, true);
+                let mut current_value: i32 = 0;
+                if current_hashmap.contains_key(&chr) {
+                    current_value = *current_hashmap.get(&chr).unwrap();
+                }
+                current_hashmap.insert(chr, current_value + 1);
             });
         }
     });
 
-    hashmap_vec.push(current_hashmap.clone());
-
+    hashmap_vec.push((current_group_count, current_hashmap.clone()));
     hashmap_vec
 }
 
-pub fn calculate_total_questions_answered_yes(groups: &Vec<HashMap<char, bool>>) -> i32 {
-    groups.iter().fold(0, |yescount, hashmap| yescount + hashmap.keys().count() as i32)
+pub fn calculate_total_questions_answered_any_yes(groups: &Vec<(i32, HashMap<char, i32>)>) -> i32 {
+    groups.iter().fold(0, |yescount, hashmap_tuple| yescount + hashmap_tuple.1.keys().count() as i32)
+}
+
+pub fn calculate_total_questions_answered_every_yes(groups: &Vec<(i32, HashMap<char, i32>)>) -> i32 {
+    groups.iter().fold(0, |yescount, hashmap_tuple| yescount + hashmap_tuple.1.values().filter(|value_this_question| **value_this_question == hashmap_tuple.0).count() as i32 )
 }
 
 #[cfg(test)]
@@ -143,14 +156,23 @@ mod day6tests {
             "b".to_string(),
         ];
 
-        let groups = collect_groups_as_dicts_where_any_yes(&test_lines);
+        let groups = collect_groups_as_dicts(&test_lines);
 
         assert_eq!(groups.len(), 5);
-        assert_eq!(groups[0].keys().count(), 3);
-        assert_eq!(groups[1].keys().count(), 3);
-        assert_eq!(groups[2].keys().count(), 3);
-        assert_eq!(groups[3].keys().count(), 1);
-        assert_eq!(groups[4].keys().count(), 1);
+        assert_eq!(groups[0].0, 1);
+        assert_eq!(groups[0].1.keys().count(), 3);
+
+        assert_eq!(groups[1].0, 3);
+        assert_eq!(groups[1].1.keys().count(), 3);
+
+        assert_eq!(groups[2].0, 2);
+        assert_eq!(groups[2].1.keys().count(), 3);
+
+        assert_eq!(groups[3].0, 4);
+        assert_eq!(groups[3].1.keys().count(), 1);
+
+        assert_eq!(groups[4].0, 1);
+        assert_eq!(groups[4].1.keys().count(), 1);
     }
 
     #[test]
@@ -173,8 +195,10 @@ mod day6tests {
             "b".to_string(),
         ];
 
-        let groups = collect_groups_as_dicts_where_any_yes(&test_lines);
+        let groups = collect_groups_as_dicts(&test_lines);
 
-        assert_eq!(calculate_total_questions_answered_yes(&groups), 11);
+        assert_eq!(calculate_total_questions_answered_any_yes(&groups), 11);
+        assert_eq!(calculate_total_questions_answered_every_yes(&groups), 6);
+
     }
 }
