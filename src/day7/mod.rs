@@ -74,8 +74,10 @@ pub fn second_star(s: &mut Cursive) {
         move || {
             // Load input file and parse it into a vec of ints
             let bufreader = BufReader::new(File::open("inputs/day7.txt").unwrap());
+            let lines: Vec<String> = bufreader.lines().map(|line| line.unwrap()).collect();
+            let rules = find_all_rules(&lines);
 
-            Ok(format!("Yeah!"))
+            Ok(format!("Aw jeez! The shiny gold bag contains {} other bags!", count_total_bags_inside_bag_recursive("shiny gold".to_string(), &rules)))
         },
         TextView::new,
     )
@@ -94,7 +96,7 @@ pub fn second_star(s: &mut Cursive) {
 pub fn find_all_kinds_of_bag(lines: &Vec<String>) -> Vec<String> {
     let mut bags: Vec<String> = Vec::new();
 
-    let bag_pattern = regex::Regex::new(r"(\w+) (\w+) bag").unwrap();
+    let bag_pattern = Regex::new(r"(\w+) (\w+) bag").unwrap();
     
     lines.iter().for_each(|line| {
         for bag_capture in bag_pattern.captures_iter(line) {
@@ -108,8 +110,8 @@ pub fn find_all_kinds_of_bag(lines: &Vec<String>) -> Vec<String> {
 pub fn find_all_rules(lines: &Vec<String>) -> HashMap<String, HashMap<String, i32>> {
     let mut rules_hash: HashMap<String, HashMap<String, i32>> = HashMap::new();
 
-    let bag_pattern = regex::Regex::new(r"(\w+) (\w+) bag").unwrap();
-    let rule_pattern = regex::Regex::new(r"([0-9]) (\w+) (\w+)").unwrap();
+    let bag_pattern = Regex::new(r"(\w+) (\w+) bag").unwrap();
+    let rule_pattern = Regex::new(r"([0-9]) (\w+) (\w+)").unwrap();
 
     lines.iter().for_each(|line| {
         let first_bag_capture = &bag_pattern.captures_iter(line).collect::<Vec<regex::Captures>>()[0];
@@ -147,6 +149,19 @@ pub fn get_all_bags_bag_may_contain_recursive(bag: String, rules: &HashMap<Strin
 
 pub fn count_bags_that_contain_bag(target_bag: String, bags: &Vec<String>, rules: &HashMap<String, HashMap<String, i32>>) -> i32 {
     bags.into_iter().fold(0, |bag_count, bag| bag_count + if get_all_bags_bag_may_contain_recursive(bag.to_string(), rules).contains(&target_bag) { 1 } else { 0 })
+}
+
+pub fn count_total_bags_inside_bag_recursive(bag: String, rules: &HashMap<String, HashMap<String, i32>>) -> i32 {
+    let mut total_bags = 0;
+    let bag_rules = rules.get(&bag).unwrap();
+
+    for bag_inner in bag_rules.keys() {
+        let number_of_bags = bag_rules.get(bag_inner).unwrap();
+        total_bags += number_of_bags;
+        total_bags += number_of_bags * count_total_bags_inside_bag_recursive(bag_inner.to_string(), &rules);
+    }
+
+    total_bags
 }
 
 #[cfg(test)]
@@ -223,5 +238,9 @@ mod day7tests {
         let bags_that_contain_shiny_gold = count_bags_that_contain_bag("shiny gold".to_string(), &rules.keys().map(|key| key.to_string()).collect::<Vec<String>>(), &rules);
 
         assert_eq!(bags_that_contain_shiny_gold, 4);
+
+        let bags_that_shiny_gold_contains = count_total_bags_inside_bag_recursive("shiny gold".to_string(), &rules);
+        
+        assert_eq!(bags_that_shiny_gold_contains, 32);
     }
 }
