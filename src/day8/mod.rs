@@ -51,7 +51,7 @@ pub fn first_star(s: &mut Cursive) {
 
             let recursion_state = run_program_until_terminated(&ProgramState::new(), &program);
             let last_instruction = recursion_state.last_instruction.unwrap();
-            Ok(format!("Okay, so:\n Acc: {}\n Pc: {}\n\n Li: {} {}", recursion_state.accumulator, recursion_state.program_counter, last_instruction.0, last_instruction.1))
+            Ok(format!("Okay, so:\n Acc: {}\n Pc: {}\n\n Li: {}:{} {}\n Tr: {}", recursion_state.accumulator, recursion_state.program_counter, last_instruction.0, last_instruction.1, last_instruction.2, recursion_state.term_reason))
         },
         TextView::new,
     )
@@ -73,12 +73,14 @@ pub fn second_star(s: &mut Cursive) {
         s,
         move || {
             // Load input file and parse it into a vec of ints
-            let bufreader = BufReader::new(File::open("inputs/day8_fix.txt").unwrap());
+            let bufreader = BufReader::new(File::open("inputs/day8.txt").unwrap());
             let program: Vec<String> = bufreader.lines().map(|line| line.unwrap()).collect();
 
-            let recursion_state = run_program_until_terminated(&ProgramState::new(), &program);
-            let last_instruction = recursion_state.last_instruction.unwrap();
-            Ok(format!("Okay, so:\n Acc: {}\n Pc: {}\n\n Li: {} {}", recursion_state.accumulator, recursion_state.program_counter, last_instruction.0, last_instruction.1))
+            let (fixed_program, fixed_at) = program_autofix(&program);
+            let fixed_state = run_program_until_terminated(&ProgramState::new(), &fixed_program);
+            let last_instruction = fixed_state.last_instruction.unwrap();
+            Ok(format!("Okay, so fixed program at line {}:\n Acc: {}\n Pc: {}\n\n Li: {}:{} {}\n Tr: {}", fixed_at+1, fixed_state.accumulator, fixed_state.program_counter, last_instruction.0, last_instruction.1, last_instruction.2, fixed_state.term_reason))
+
         },
         TextView::new,
     )
@@ -98,9 +100,10 @@ pub fn second_star(s: &mut Cursive) {
 pub struct ProgramState {
     accumulator: i32,
     program_counter: i32,
-    last_instruction: Option<(String, i32)>,
+    last_instruction: Option<(i32, String, i32)>,
     visited_indices: Vec<i32>,
-    terminated: bool
+    terminated: bool,
+    term_reason: i32
 }
 
 impl ProgramState {
@@ -110,7 +113,8 @@ impl ProgramState {
             program_counter: 0,
             last_instruction: None,
             visited_indices: Vec::new(),
-            terminated: false
+            terminated: false,
+            term_reason: 0,
         }
     }
 }
@@ -129,6 +133,7 @@ pub fn step_program_forward(current_state: &ProgramState, program: &Vec<String>)
 
     if program.len() == current_state.program_counter as usize {
         new_state.terminated = true;
+        new_state.term_reason = 0;
         return new_state;
     }
 
@@ -152,12 +157,13 @@ pub fn step_program_forward(current_state: &ProgramState, program: &Vec<String>)
         _ => {}
     }
 
-    new_state.last_instruction = Some((operator, operand));
+    new_state.last_instruction = Some((current_state.program_counter, operator, operand));
 
     // Check that we didn't visit the same instruction twice.
     if new_state.visited_indices.len() != new_state.visited_indices.clone().into_iter().unique().collect::<Vec<i32>>().len() {
         new_state = current_state.clone();
         new_state.terminated = true;
+        new_state.term_reason = 1;
     }
 
     
@@ -186,7 +192,39 @@ pub fn run_program_until_terminated(current_state: &ProgramState, program: &Vec<
     new_state
 }
 
+pub fn program_autofix(broken_program: &Vec<String>) -> (Vec<String>, i32) {
+    let mut new_program = broken_program.clone();
+    let mut line_fix = 0;
+    let mut program_state = run_program_until_terminated(&ProgramState::new(),&new_program);
 
+    while program_state.term_reason == 1 {
+
+        // Get visited indices from last run.
+        let visited_indices = program_state.visited_indices.clone();
+
+        for idx in visited_indices {
+            // Manipulate the program. 
+            let mut temp_new_program = new_program.clone();
+            if get_instruction(&temp_new_program[idx as usize]).0.as_str() == "jmp" {
+                temp_new_program[idx as usize] = "nop +0".to_string();
+            }
+            else if get_instruction(&temp_new_program[idx as usize]).0.as_str() == "nop" {
+                temp_new_program[idx as usize] = format!("jmp {}", get_instruction(&temp_new_program[idx as usize]).1); 
+            }
+
+            let test_fix_program = run_program_until_terminated(&ProgramState::new(),&temp_new_program);
+            if test_fix_program.term_reason == 0 {
+                line_fix = idx;
+                new_program = temp_new_program.clone();
+                break;
+            }
+        }
+
+        program_state = run_program_until_terminated(&ProgramState::new(),&new_program);
+    }
+
+    (new_program, line_fix)
+}
 
 
 #[cfg(test)]
@@ -243,6 +281,7 @@ mod day8tests {
 
         assert_eq!(run_state.accumulator, 1);
         assert_eq!(run_state.program_counter, 3);
+        assert_eq!(run_state.term_reason, 0);
     }
 
     #[test]
@@ -259,5 +298,20 @@ mod day8tests {
 
         assert_eq!(run_state.accumulator, 1);
         assert_eq!(run_state.program_counter, 0);
+        assert_eq!(run_state.term_reason, 1);
+    }
+
+    #[test]
+    pub fn test_program_autofix() {
+        let test_program = vec![
+            "acc +1".to_string(),
+            "nop +0".to_string(),
+            "jmp -2".to_string(),
+        ];
+
+        let fixed_program = program_autofix(&test_program);
+
+        assert_eq!(fixed_program.0.len(), test_program.len());
+        assert_eq!(fixed_program.0[2],"nop +0".to_string());
     }
 }
