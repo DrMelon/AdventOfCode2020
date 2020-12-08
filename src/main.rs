@@ -1,6 +1,7 @@
 use cursive::traits::*;
 use cursive::views::{Dialog, SelectView, TextView};
 use cursive::Cursive;
+use cursive::*;
 use cursive_async_view::AsyncView;
 
 pub mod day1;
@@ -14,7 +15,11 @@ pub mod day8;
 
 fn main() {
     // Creates the cursive root - required for every application.
-    let mut siv = cursive::default();
+    let mut siv =  Cursive::new(|| {
+        let crossterm_backend = cursive::backends::crossterm::Backend::init().unwrap();
+        let buffered_backend = cursive_buffered_backend::BufferedBackend::new(crossterm_backend);
+        Box::new(buffered_backend)
+    });
 
     // Load theme
     siv.load_theme_file("config/xmas.toml").unwrap();
