@@ -3,9 +3,9 @@
 use super::*;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
-use regex::*;
+
 use itertools::Itertools;
-use std::collections::HashMap;
+
 
 pub fn display_day_menu(s: &mut Cursive) {
     let menu = SelectView::<i32>::new()

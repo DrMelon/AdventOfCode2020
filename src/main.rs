@@ -1,7 +1,7 @@
 use cursive::traits::*;
 use cursive::views::{Dialog, SelectView, TextView};
 use cursive::Cursive;
-use cursive::*;
+
 use cursive_async_view::AsyncView;
 
 pub mod day1;
