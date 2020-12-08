@@ -9,6 +9,7 @@ edition = "2018"
 [dependencies]
 cursive-async-view = "^0"
 regex = "1"
+itertools = "*"
 
 [dependencies.cursive]
 version = "0.15"
