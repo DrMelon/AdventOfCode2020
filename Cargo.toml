@@ -11,6 +11,7 @@ cursive-async-view = "^0"
 cursive_buffered_backend = "0.4.1"
 regex = "1"
 itertools = "*"
+circular-queue = "*"
 
 [dependencies.cursive]
 version = "0.15"
