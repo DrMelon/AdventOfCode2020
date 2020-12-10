@@ -13,6 +13,7 @@ pub mod day6;
 pub mod day7;
 pub mod day8;
 pub mod day9;
+pub mod day10;
 
 fn main() {
     // Creates the cursive root - required for every application.
@@ -78,6 +79,9 @@ fn menu_selection(s: &mut Cursive, selection: &i32) {
         8 => {
             day9::display_day_menu(s);
         }
+        9 => {
+            day10::display_day_menu(s);
+        }
         999 => {
             s.quit();
         }
@@ -87,15 +91,16 @@ fn menu_selection(s: &mut Cursive, selection: &i32) {
 
 fn populate_menu(s: &mut Cursive) {
     s.call_on_name("main_menu", |view: &mut SelectView<i32>| {
-        view.add_item("Day 1) Report Repair 📄", 0);
-        view.add_item("Day 2) Password Philosophy 🤫", 1);
-        view.add_item("Day 3) Toboggan Trajectory 🛷", 2);
-        view.add_item("Day 4) Passport Processing 📕", 3);
-        view.add_item("Day 5) Binary Boarding 💺", 4);
-        view.add_item("Day 6) Custom Customs 🛅", 5);
-        view.add_item("Day 7) Handy Haversacks 🧳", 6);
-        view.add_item("Day 8) Handheld Halting 🎮", 7);
-        view.add_item("Day 9) Encoding Error ⛔", 8);
+        view.add_item("Day  1) Report Repair 📄", 0);
+        view.add_item("Day  2) Password Philosophy 🤫", 1);
+        view.add_item("Day  3) Toboggan Trajectory 🛷", 2);
+        view.add_item("Day  4) Passport Processing 📕", 3);
+        view.add_item("Day  5) Binary Boarding 💺", 4);
+        view.add_item("Day  6) Custom Customs 🛅", 5);
+        view.add_item("Day  7) Handy Haversacks 🧳", 6);
+        view.add_item("Day  8) Handheld Halting 🎮", 7);
+        view.add_item("Day  9) Encoding Error ⛔", 8);
+        view.add_item("Day 10) Adapter Array ⚡", 9);
         view.add_item("Quit", 999);
     });
 }
