@@ -14,6 +14,7 @@ pub mod day7;
 pub mod day8;
 pub mod day9;
 pub mod day10;
+pub mod day11;
 
 fn main() {
     // Creates the cursive root - required for every application.
@@ -82,6 +83,9 @@ fn menu_selection(s: &mut Cursive, selection: &i32) {
         9 => {
             day10::display_day_menu(s);
         }
+        10 => {
+            day11::display_day_menu(s);
+        }
         999 => {
             s.quit();
         }
@@ -101,6 +105,8 @@ fn populate_menu(s: &mut Cursive) {
         view.add_item("Day  8) Handheld Halting 🎮", 7);
         view.add_item("Day  9) Encoding Error ⛔", 8);
         view.add_item("Day 10) Adapter Array ⚡", 9);
+        view.add_item("Day 11) Seating System 🪑", 10);
         view.add_item("Quit", 999);
     });
 }
+

@@ -3,7 +3,7 @@
 use super::*;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
-use circular_queue::CircularQueue;
+
 use itertools::Itertools;
 
 pub fn display_day_menu(s: &mut Cursive) {
@@ -160,7 +160,7 @@ pub fn get_total_number_of_chains(adapters: &Vec<i32>) -> i64 {
 
     let mut known_chains = vec![1 as i64];
 
-    sorted_adapters.iter().enumerate().skip(1).for_each(|(idx, &adapter)| {
+    sorted_adapters.iter().enumerate().skip(1).for_each(|(idx, &_adapter)| {
         let mut jumpback_matches: i64 = 0;
 
         let look_behind_index = idx as i32 - 1;
