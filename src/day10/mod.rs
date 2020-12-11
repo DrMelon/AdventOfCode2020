@@ -79,7 +79,7 @@ pub fn second_star(s: &mut Cursive) {
             let bufreader = BufReader::new(File::open("inputs/day10.txt").unwrap());
             let inputs: Vec<i32> = bufreader.lines().map(|line| line.unwrap().parse().unwrap()).collect();
 
-            Ok(format!(""))
+            Ok(format!("The total number of configurations is: {}", get_total_number_of_chains(&inputs)))
         },
         TextView::new,
     )
@@ -109,11 +109,8 @@ pub fn get_device_port_rating(adapters: &Vec<i32>) -> i32 {
 }
 
 pub fn get_viable_adapters_for_joltage(source_joltage: i32, adapters: &Vec<i32>) -> Vec<i32> {
-    let mut viable_adapters = adapters.into_iter().filter(|adapter| can_joltage_adapters_connect(source_joltage, **adapter)).map(|a| *a).collect::<Vec<i32>>();
-    viable_adapters.sort();
-    viable_adapters
+    adapters.into_iter().filter(|adapter| can_joltage_adapters_connect(source_joltage, **adapter)).map(|a| *a).sorted().collect::<Vec<i32>>()
 }
-
 pub fn get_adapter_chain(start_joltage: i32, target_joltage: i32, adapters: &Vec<i32>) -> Vec<i32> {
     let mut connected_adapters = Vec::new();
 
@@ -128,13 +125,62 @@ pub fn get_adapter_chain(start_joltage: i32, target_joltage: i32, adapters: &Vec
     connected_adapters
 }
 
-pub fn count_jumps_of_length(adapter_chain: &Vec<i32>, jump_length: i32) -> i32 {
-    let mut last_adapter = adapter_chain[0];
-    println!("Connected: {:?}", adapter_chain);
-    adapter_chain.iter().filter(|adapter| { let fits = get_joltage_adapter_delta(last_adapter, **adapter) == jump_length; last_adapter = **adapter; fits}).count() as i32
+pub fn get_max_jump_adapter_chain(start_joltage: i32, target_joltage: i32, adapters: &Vec<i32>) -> Vec<i32> {
+    let mut connected_adapters = Vec::new();
+
+    connected_adapters.push(start_joltage);
+
+    while !can_joltage_adapters_connect(*connected_adapters.last().unwrap(), target_joltage) {
+        connected_adapters.push(*get_viable_adapters_for_joltage(*connected_adapters.last().unwrap(), adapters).last().unwrap());
+    }
+
+    connected_adapters.push(target_joltage);
+
+    connected_adapters  
 }
 
 
+pub fn count_jumps_of_length(adapter_chain: &Vec<i32>, jump_length: i32) -> i32 {
+    let mut last_adapter = adapter_chain[0];
+    adapter_chain.iter().filter(|adapter| { let fits = get_joltage_adapter_delta(last_adapter, **adapter) == jump_length; last_adapter = **adapter; fits}).count() as i32
+}
+
+pub fn is_valid_chain(start_joltage:i32, target_joltage: i32, adapter_chain: &Vec<i32>) -> bool {
+    let mut last_adapter = adapter_chain[0];
+    start_joltage == adapter_chain[0] && 
+    target_joltage == *adapter_chain.last().unwrap() &&
+    adapter_chain.iter().skip(1).filter(|adapter| { let fits = can_joltage_adapters_connect(last_adapter, **adapter); last_adapter = **adapter; fits}).count() == adapter_chain.len() - 1
+}
+
+pub fn get_total_number_of_chains(adapters: &Vec<i32>) -> i64 {
+    // first, sort adapter numbers descending
+    let mut sorted_adapters = adapters.into_iter().sorted().map(|a| *a).collect::<Vec<i32>>();
+    sorted_adapters.reverse();
+    sorted_adapters.push(0);
+
+    let mut known_chains = vec![1 as i64];
+
+    sorted_adapters.iter().enumerate().skip(1).for_each(|(idx, &adapter)| {
+        let mut jumpback_matches: i64 = 0;
+
+        let look_behind_index = idx as i32 - 1;
+        if look_behind_index >= 0 {
+            jumpback_matches += if can_joltage_adapters_connect(sorted_adapters[idx], sorted_adapters[look_behind_index as usize]) { known_chains[look_behind_index as usize] } else { 0 };
+        }
+        let look_behind_index = idx as i32 - 2;
+        if look_behind_index >= 0 {
+            jumpback_matches += if can_joltage_adapters_connect(sorted_adapters[idx], sorted_adapters[look_behind_index as usize]) { known_chains[look_behind_index as usize] } else { 0 };
+        }
+        let look_behind_index = idx as i32 - 3;
+        if look_behind_index >= 0 {
+            jumpback_matches += if can_joltage_adapters_connect(sorted_adapters[idx], sorted_adapters[look_behind_index as usize]) { known_chains[look_behind_index as usize] } else { 0 };
+        }        
+        known_chains.push(jumpback_matches);
+        
+    });
+
+    *known_chains.last().unwrap() as i64
+}
 
 #[cfg(test)]
 mod day10tests {
@@ -242,4 +288,32 @@ mod day10tests {
         assert_eq!(count_jumps_of_length(&adapter_chain, 3), 10);
     }
 
+    #[test]
+    fn max_jump_adapter_chain_works() {
+        let test_data = get_test_data_small();
+        let device_joltage = get_device_port_rating(&test_data);
+        let adapter_chain = get_max_jump_adapter_chain(0, device_joltage, &test_data);
+
+        assert_eq!(adapter_chain.len() - 2, 8);
+    }
+
+    #[test]
+    fn chain_validator_works() {
+        let test_data = get_test_data_small();
+        let device_joltage = get_device_port_rating(&test_data);
+        let adapter_chain = get_adapter_chain(0, device_joltage, &test_data);
+        
+        assert_eq!(is_valid_chain(0, 22, &adapter_chain), true);
+        assert_eq!(is_valid_chain(3, 14, &adapter_chain), false);
+        assert_eq!(is_valid_chain(0, 22, &test_data), false);
+    }
+
+    #[test]
+    fn count_chains_works() {
+        let test_data = get_test_data_small();
+        let test_data_large = get_test_data_large();
+
+        assert_eq!(get_total_number_of_chains(&test_data), 8);
+        assert_eq!(get_total_number_of_chains(&test_data_large), 19208);
+    }
 }
