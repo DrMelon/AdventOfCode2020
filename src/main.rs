@@ -1,5 +1,5 @@
 use cursive::traits::*;
-use cursive::views::{Dialog, SelectView, TextView};
+use cursive::views::{Dialog, SelectView, TextView, ScrollView};
 use cursive::Cursive;
 
 use cursive_async_view::AsyncView;
@@ -15,6 +15,7 @@ pub mod day8;
 pub mod day9;
 pub mod day10;
 pub mod day11;
+pub mod day12;
 
 fn main() {
     // Creates the cursive root - required for every application.
@@ -33,7 +34,7 @@ fn main() {
         .with_name("main_menu")
         .fixed_size((50, 20));
 
-    siv.add_layer(Dialog::around(menu).title("Main Menu"));
+    siv.add_layer(Dialog::around(ScrollView::new(menu)).title("Main Menu"));
     populate_menu(&mut siv);
 
     // Show intro dialogue.
@@ -86,6 +87,9 @@ fn menu_selection(s: &mut Cursive, selection: &i32) {
         10 => {
             day11::display_day_menu(s);
         }
+        11 => {
+            day12::display_day_menu(s);
+        }
         999 => {
             s.quit();
         }
@@ -106,6 +110,7 @@ fn populate_menu(s: &mut Cursive) {
         view.add_item("Day  9) Encoding Error ⛔", 8);
         view.add_item("Day 10) Adapter Array ⚡", 9);
         view.add_item("Day 11) Seating System 🪑", 10);
+        view.add_item("Day 12) Rain Risk ☔", 11);
         view.add_item("Quit", 999);
     });
 }

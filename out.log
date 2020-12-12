@@ -1,0 +1,90 @@
+   Compiling adventofcode2020 v0.1.0 (C:\Users\drmel\Programming\Projects\AdventOfCode2020)
+warning: unused import: `itertools::Itertools`
+ --> src\day11\mod.rs:7:5
+  |
+7 | use itertools::Itertools;
+  |     ^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unnecessary parentheses around `for` iterator expression
+   --> src\day11\mod.rs:129:15
+    |
+129 |     for dx in ((x as i32 - 1) .. (x as i32 + 2)) {
+    |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: remove these parentheses
+    |
+    = note: `#[warn(unused_parens)]` on by default
+
+warning: unnecessary parentheses around `for` iterator expression
+   --> src\day11\mod.rs:130:19
+    |
+130 |         for dy in ((y as i32 - 1) .. (y as i32 + 2)) {
+    |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: remove these parentheses
+
+warning: unnecessary parentheses around `while` condition
+   --> src\day11\mod.rs:153:22
+    |
+153 |                 while(step_x >= 0 && step_x < grid.0 as i32 && step_y >= 0 && step_y < grid.1 as i32)
+    |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: remove these parentheses
+
+warning: unused import: `itertools::Itertools`
+ --> src\day12\mod.rs:7:5
+  |
+7 | use itertools::Itertools;
+  |     ^^^^^^^^^^^^^^^^^^^^
+
+warning: unnecessary parentheses around `if` condition
+   --> src\day12\mod.rs:160:7
+    |
+160 |     if(new_state.x < new_state.min_x) {
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: remove these parentheses
+
+warning: unnecessary parentheses around `if` condition
+   --> src\day12\mod.rs:163:7
+    |
+163 |     if(new_state.y < new_state.min_y) {
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: remove these parentheses
+
+warning: unnecessary parentheses around `if` condition
+   --> src\day12\mod.rs:166:7
+    |
+166 |     if(new_state.x > new_state.max_x) {
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: remove these parentheses
+
+warning: unnecessary parentheses around `if` condition
+   --> src\day12\mod.rs:169:7
+    |
+169 |     if(new_state.y > new_state.max_y) {
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: remove these parentheses
+
+warning: unused variable: `inputs`
+  --> src\day12\mod.rs:79:17
+   |
+79 |             let inputs: Vec<String> = bufreader.lines().map(|line| line.unwrap()).collect();
+   |                 ^^^^^^ help: if this is intentional, prefix it with an underscore: `_inputs`
+   |
+   = note: `#[warn(unused_variables)]` on by default
+
+warning: variable `gridA` should have a snake case name
+   --> src\day11\mod.rs:229:20
+    |
+229 | pub fn grids_equal(gridA:  &(usize, usize, Vec<char>), gridB: &(usize, usize, Vec<char>)) -> bool {
+    |                    ^^^^^ help: convert the identifier to snake case: `grid_a`
+    |
+    = note: `#[warn(non_snake_case)]` on by default
+
+warning: variable `gridB` should have a snake case name
+   --> src\day11\mod.rs:229:56
+    |
+229 | pub fn grids_equal(gridA:  &(usize, usize, Vec<char>), gridB: &(usize, usize, Vec<char>)) -> bool {
+    |                                                        ^^^^^ help: convert the identifier to snake case: `grid_b`
+
+warning: unused `std::result::Result` that must be used
+   --> src\day12\mod.rs:224:9
+    |
+224 |         img.save(format!("out/ship{}.png", idx));
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(unused_must_use)]` on by default
+    = note: this `Result` may be an `Err` variant, which should be handled
+
